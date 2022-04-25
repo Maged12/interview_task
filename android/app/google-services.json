@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1088647408284",
+    "project_id": "interview-task-fc4e5",
+    "storage_bucket": "interview-task-fc4e5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088647408284:android:f67459ae2a831af66e9b59",
+        "android_client_info": {
+          "package_name": "com.example.interview_task"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1088647408284-71bhn1ln8m12vlqfgjs8ncnok5anbeb6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.interview_task",
+            "certificate_hash": "f12282b4c882ab150c317cf90b26b1f26b745c22"
+          }
+        },
+        {
+          "client_id": "1088647408284-rnreglnko5p97ahg0k6h50b0tcu1n8dg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbwzGByqsTkdXjvhr-q-kfpAhsje2oSZ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1088647408284-rnreglnko5p97ahg0k6h50b0tcu1n8dg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
