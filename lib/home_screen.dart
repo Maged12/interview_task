@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:interview_task/otp_screen.dart';
+
+import 'otp_screen.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     Key? key,
@@ -14,6 +16,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
   bool _isMobile = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -45,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    print("loading : $_isLoading");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -89,32 +93,32 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: _controller,
               focusNode: _focusNode,
               keyboardType:
-              _isMobile ? TextInputType.phone : TextInputType.emailAddress,
+                  _isMobile ? TextInputType.phone : TextInputType.emailAddress,
               decoration: InputDecoration(
                 label: _focusNode.hasFocus || _controller.text.trim().isNotEmpty
                     ? Text(
-                  _isMobile ? "Phone" : "Phone number or Email",
-                  style: const TextStyle(
-                      color: Color.fromRGBO(0, 0, 0, 0.6),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 12),
-                )
+                        _isMobile ? "Phone" : "Phone number or Email",
+                        style: const TextStyle(
+                            color: Color.fromRGBO(0, 0, 0, 0.6),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12),
+                      )
                     : const Text(
-                  "Phone number or Email",
-                  style: TextStyle(
-                      color: Color.fromRGBO(0, 0, 0, 0.8),
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18),
-                ),
+                        "Phone number or Email",
+                        style: TextStyle(
+                            color: Color.fromRGBO(0, 0, 0, 0.8),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18),
+                      ),
                 prefixIconConstraints: _isMobile
                     ? const BoxConstraints(maxWidth: 48, maxHeight: 69)
                     : null,
                 prefixIcon: _isMobile
                     ? Image.asset(
-                  "assets/images/uk.png",
-                  width: 48,
-                  height: 15,
-                )
+                        "assets/images/uk.png",
+                        width: 48,
+                        height: 15,
+                      )
                     : null,
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -128,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: ElevatedButton(
-              onPressed: _onPressContinue,
+              onPressed: _isLoading ? null : _onPressContinue,
               child: const Text(
                 "Continue",
                 style: TextStyle(
@@ -149,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
               TextSpan(
                 text: 'By signing up I agree to Zëdfi’s ',
                 style:
-                const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                 children: <InlineSpan>[
                   const TextSpan(
                     text: 'Privacy Policy',
@@ -169,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     const TextSpan(
                       text: ' Marketing purposes ',
                       style:
-                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     )
                   ],
                 ],
@@ -182,7 +186,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _onPressContinue() {
+  void _onPressContinue() => _isMobile ? mobileAuth() : emailAuth();
+
+  void toggleLoading() {
+    setState(() {
+      _isLoading = !_isLoading;
+    });
+  }
+
+  void mobileAuth() async {
+    toggleLoading();
     final auth = FirebaseAuth.instance;
     auth.verifyPhoneNumber(
       phoneNumber: _controller.text.trim(),
@@ -195,20 +208,30 @@ class _MyHomePageState extends State<MyHomePage> {
             content: Text(e.message ?? e.code),
           ),
         );
+        toggleLoading();
       },
       codeSent: (String verificationId, int? resendToken) {
-        _focusNode.unfocus();
-        Navigator.of(context)
-            .push(
-          MaterialPageRoute(
-            builder: (ctx) => OTPScreen(verificationId: verificationId),
-          ),
-        )
-            .then((_) {
-          _controller.clear();
-        });
+        cleanAndPushToOTPScreen(verificationId: verificationId, isMobile: true);
+        toggleLoading();
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );
+  }
+
+  void emailAuth() => cleanAndPushToOTPScreen(isMobile: false);
+
+  void cleanAndPushToOTPScreen(
+      {String? verificationId, required bool isMobile}) {
+    _focusNode.unfocus();
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (ctx) =>
+            OTPScreen(verificationId: verificationId, isMobile: isMobile),
+      ),
+    )
+        .then((_) {
+      _controller.clear();
+    });
   }
 }

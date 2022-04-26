@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class OTPScreen extends StatefulWidget {
-  const OTPScreen({Key? key,required this.verificationId}) : super(key: key);
-  final String verificationId;
+  const OTPScreen({
+    Key? key,
+    this.verificationId,
+    required this.isMobile,
+  }) : super(key: key);
+  final String? verificationId;
+  final bool isMobile;
   @override
   State<OTPScreen> createState() => _OTPScreenState();
 }
@@ -58,6 +63,21 @@ class _OTPScreenState extends State<OTPScreen> {
                   ),
                 ),
               ),
+            if (!widget.isMobile)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 10.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Write any OTP ex '123456' ",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 15,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
             PinCodeTextField(
               appContext: context,
               length: 6,
@@ -82,23 +102,9 @@ class _OTPScreenState extends State<OTPScreen> {
               ),
               animationDuration: const Duration(milliseconds: 100),
               enableActiveFill: true,
-              onCompleted: (value) async {
-                if (fireBaseError.isNotEmpty) {
-                  setState(() {
-                    fireBaseError = '';
-                  });
-                }
-                try {
-                  final credential = PhoneAuthProvider.credential(
-                      verificationId: widget.verificationId, smsCode: value);
-                  await FirebaseAuth.instance.signInWithCredential(credential);
-                  Navigator.of(context).pop();
-                } on FirebaseAuthException catch (e) {
-                  setState(() {
-                    fireBaseError = e.message ?? e.code;
-                  });
-                }
-              },
+              onCompleted: (value) => widget.isMobile
+                  ? firebaseOtpValidation(value)
+                  : emailOtpValidation(),
               beforeTextPaste: (text) {
                 if (text != null) {
                   return int.tryParse(text) == null ? false : true;
@@ -128,5 +134,37 @@ class _OTPScreenState extends State<OTPScreen> {
         ),
       ),
     );
+  }
+
+  void emailOtpValidation() async {
+    await Future.delayed(const Duration(seconds: 1));
+    showLoginMessage();
+  }
+
+  void showLoginMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Successfully Logged in"),
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
+  void firebaseOtpValidation(String value) async {
+    if (fireBaseError.isNotEmpty) {
+      setState(() {
+        fireBaseError = '';
+      });
+    }
+    try {
+      final credential = PhoneAuthProvider.credential(
+          verificationId: widget.verificationId!, smsCode: value);
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      showLoginMessage();
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        fireBaseError = e.message ?? e.code;
+      });
+    }
   }
 }
